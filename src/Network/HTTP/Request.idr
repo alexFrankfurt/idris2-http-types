@@ -17,7 +17,6 @@ record Request where
   connection : Maybe HTTPConnection
   method : Method
   resource : String
-  version : String
   headers : Headers
 
 public export
@@ -26,7 +25,6 @@ Show Request where
     "MkRequest { connection = " ++ show req.connection
                ++ ", method = " ++ show req.method
                ++ ", resource = " ++ show req.resource
-               ++ ", version = " ++ show req.version
                ++ ", headers = " ++ show req.headers ++ " }"
 
 
@@ -64,7 +62,7 @@ readRequestHeaders connection = do
     pure $ Left $ ConnectionSocketError err
 
   -- Parse the request line
-  Just (method, resource, version) <- pure $ parseRequestLine $ toString line
+  Just (method, resource, "HTTP/1.1") <- pure $ parseRequestLine $ toString line
   | _ =>
     pure $ Left $ ConnectionProtocolError $ ProtocolErrorMessage "Invalid request"
 
@@ -79,4 +77,4 @@ readRequestHeaders connection = do
     pure $ Left $ ConnectionProtocolError $ ProtocolErrorMessage "Invalid method"
 
   -- Assemble the request
-  pure $ Right $ MkRequest (Just connection) method' resource version headers
+  pure $ Right $ MkRequest (Just connection) method' resource headers

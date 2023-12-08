@@ -1,0 +1,10 @@
+[custom.all.idris2-http-types]
+type = "local"
+path = "."
+ipkg = "idris2-http-types.ipkg"
+test = "test/test.ipkg"
+
+[custom.all.idris2-http-types-test]
+type = "local"
+path = "test"
+ipkg = "test.ipkg"

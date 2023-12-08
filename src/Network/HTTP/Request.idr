@@ -23,31 +23,20 @@ record Request where
 public export
 Show Request where
   show req =
-    let
-      connection = show req.connection
-      method = show req.method
-      resource = show req.resource
-      version = show req.version
-      headers = show req.headers
-    in
-      "MkRequest { connection = " ++ connection
-                 ++ ", method = " ++ method
-                 ++ ", resource = " ++ resource
-                 ++ ", version = " ++ version
-                 ++ ", headers = " ++ headers ++ " }"
+    "MkRequest { connection = " ++ show req.connection
+               ++ ", method = " ++ show req.method
+               ++ ", resource = " ++ show req.resource
+               ++ ", version = " ++ show req.version
+               ++ ", headers = " ++ show req.headers ++ " }"
 
 
 contentLength : Request -> Maybe Nat
 contentLength request =
-  let
-    contentLengthString = getHeader "Content-Length" request.headers
-  in
-    case contentLengthString of
-      Just contentLengthString =>
-        parsePositive contentLengthString
-
-      Nothing =>
-        Nothing
+  case getHeader "Content-Length" request.headers of
+    Just contentLengthString =>
+      parsePositive contentLengthString
+    Nothing =>
+      Nothing
 
 
 public export
@@ -67,8 +56,8 @@ readRequestBody request =
 
 
 export
-recvRequest : HTTPConnection -> IO (Either HTTPConnectionError Request)
-recvRequest connection = do
+readRequestHeaders : HTTPConnection -> IO (Either HTTPConnectionError Request)
+readRequestHeaders connection = do
   -- Receive the request line
   Right line <- recvLine connection
   | Left err =>

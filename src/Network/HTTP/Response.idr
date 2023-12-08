@@ -209,24 +209,24 @@ http1ResponseLine response
 
 
 export
-responseHeaders : Headers -> String
-responseHeaders [] = ""
-responseHeaders ((MkHeader k []) :: headers) = responseHeaders headers
-responseHeaders ((MkHeader k (v::vs)) :: headers) =
-  k ++ ": " ++ v ++ "\r\n" ++ (responseHeaders ((MkHeader k vs) :: headers))
+http1ResponseHeaders : Headers -> String
+http1ResponseHeaders [] = ""
+http1ResponseHeaders ((MkHeader k []) :: headers) = http1ResponseHeaders headers
+http1ResponseHeaders ((MkHeader k (v::vs)) :: headers) =
+  k ++ ": " ++ v ++ "\r\n" ++ (http1ResponseHeaders ((MkHeader k vs) :: headers))
 
 
 export
 http1Response : Response -> String
 http1Response response
   = http1ResponseLine response ++ "\r\n"
-  ++ responseHeaders response.headers ++ "\r\n"
+  ++ http1ResponseHeaders response.headers ++ "\r\n"
   ++ toString response.body
 
 
 export
-withHeader : String -> String -> Response -> Response
-withHeader k v response =
+addHeader : String -> String -> Response -> Response
+addHeader k v response =
   { headers := addHeader (MkHeader k [v]) response.headers } response
 
 
@@ -235,4 +235,4 @@ withContentLength : Response -> Response
 withContentLength response =
   if hasHeader "Content-Length" response.headers
      then response
-     else withHeader "Content-Length" (show $ length response.body) response
+     else addHeader "Content-Length" (show $ length response.body) response

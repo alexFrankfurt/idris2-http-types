@@ -201,9 +201,9 @@ statusHTTPVersionNotSupported = MkStatus 505 "HTTP Version not supported"
 
 
 export
-responseLine : Request -> Response -> String
-responseLine request response
-  = request.version ++ " "
+http1ResponseLine : Response -> String
+http1ResponseLine response
+  = "HTTP/1.1 "
   ++ show response.status.code ++ " "
   ++ response.status.text
 
@@ -217,9 +217,9 @@ responseHeaders ((MkHeader k (v::vs)) :: headers) =
 
 
 export
-responseString : Request -> Response -> String
-responseString request response
-  = responseLine request response ++ "\r\n"
+http1Response : Response -> String
+http1Response response
+  = http1ResponseLine response ++ "\r\n"
   ++ responseHeaders response.headers ++ "\r\n"
   ++ toString response.body
 

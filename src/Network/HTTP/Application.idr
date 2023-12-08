@@ -17,9 +17,9 @@ Application = Request -> (Response -> IO Responded) -> IO Responded
 
 
 export
-mkRespond : Socket -> Request -> Response -> IO Responded
-mkRespond sock request response0 = do
+mkRespond : Socket -> Response -> IO Responded
+mkRespond sock response0 = do
   let response1 = withContentLength response0
-  Right _ <- send sock $ responseString request response1
+  Right _ <- send sock $ http1Response response1
   | Left err => pure $ SendResponseError response1 err
   pure $ SentResponse response1

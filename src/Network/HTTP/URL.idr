@@ -6,7 +6,7 @@ import Data.String
 
 record URL where
   constructor MkURL
-  schema : String
+  scheme : String
   host : String
   port : Maybe Int
   path : String

@@ -70,3 +70,15 @@ parse url = do
   (host, port) <- parseAddr addr
   let (path, query, fragment) = parsePath rest
   pure $ MkURL scheme host port path query fragment
+
+
+-- | Resource path.
+public export
+resource : URL -> String
+resource url = url.path ++ query ++ fragment where
+  query = case url.query of
+    Just q => "?" ++ q
+    Nothing => ""
+  fragment = case url.fragment of
+    Just f => "#" ++ f
+    Nothing => ""

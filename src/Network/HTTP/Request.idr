@@ -38,11 +38,6 @@ contentLength request =
       Nothing
 
 
-public export
-mkRequest : Method -> URL -> Headers -> ByteString -> Request ByteString
-mkRequest method url headers body = MkRequest body method (resource url) headers
-
-
 export
 readRequestHeaders : Connection -> IO (Either ConnectionError (Request Connection))
 readRequestHeaders connection = do
@@ -92,3 +87,23 @@ http1Request request
   = http1RequestLine request ++ "\r\n"
   ++ http1Headers request.headers ++ "\r\n"
   ++ toString request.body
+
+
+public export
+addHeader : String -> String -> Request b -> Request b
+addHeader k v request =
+  { headers := addHeader (MkHeader k [v]) request.headers } request
+
+
+public export
+withContentLength : Request ByteString -> Request ByteString
+withContentLength request =
+  if hasHeader "Content-Length" request.headers
+    then request
+    else addHeader "Content-Length" (show $ length request.body) request
+
+
+public export
+mkRequest : Method -> URL -> Headers -> ByteString -> Request ByteString
+mkRequest method url headers body =
+  withContentLength $ MkRequest body method (resource url) headers

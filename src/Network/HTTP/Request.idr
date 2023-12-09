@@ -70,3 +70,19 @@ readRequestBody request =
       pure $ Right body
     Nothing => pure $ Left $ ConnectionProtocolError $
       ProtocolErrorMessage "No Content-Length header"
+
+
+public export
+http1RequestLine : Request b -> String
+http1RequestLine request
+  = methodToString request.method ++ " "
+  ++ request.resource
+  ++ " HTTP/1.1"
+
+
+public export
+http1Request : Request ByteString -> String
+http1Request request
+  = http1RequestLine request ++ "\r\n"
+  ++ http1Headers request.headers ++ "\r\n"
+  ++ toString request.body

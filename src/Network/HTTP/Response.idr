@@ -224,18 +224,10 @@ http1ResponseLine response
 
 
 export
-http1ResponseHeaders : Headers -> String
-http1ResponseHeaders [] = ""
-http1ResponseHeaders ((MkHeader k []) :: headers) = http1ResponseHeaders headers
-http1ResponseHeaders ((MkHeader k (v::vs)) :: headers) =
-  k ++ ": " ++ v ++ "\r\n" ++ (http1ResponseHeaders ((MkHeader k vs) :: headers))
-
-
-export
 http1Response : Response ByteString -> String
 http1Response response
   = http1ResponseLine response ++ "\r\n"
-  ++ http1ResponseHeaders response.headers ++ "\r\n"
+  ++ http1Headers response.headers ++ "\r\n"
   ++ toString response.body
 
 

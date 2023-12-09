@@ -2,8 +2,11 @@ module Network.HTTP.Response
 
 import Data.Buffer.Indexed
 import Data.ByteString
+import Network.HTTP.Connection
 import Network.HTTP.Headers
+import Network.HTTP.Protocol
 import Network.HTTP.Request
+import Network.Socket
 
 
 public export
@@ -236,3 +239,18 @@ withContentLength response =
   if hasHeader "Content-Length" response.headers
      then response
      else addHeader "Content-Length" (show $ length response.body) response
+
+
+export
+readResponseHeaders : Connection -> IO (Either ConnectionError Response)
+readResponseHeaders connection = do
+  Right line <- recvLine connection
+  | Left error => pure $ Left $ ConnectionSocketError error
+
+  Just ("HTTP/1.1", statusCode, statusText) <- pure $ parseResponseLine $ toString line
+  | _ => pure $ Left $ ConnectionProtocolError $ ProtocolErrorMessage "Invalid response"
+
+  Right headers <- recvHeaders connection empty
+  | Left error => pure $ Left error
+
+  pure $ Right $ MkResponse (MkStatus statusCode statusText) headers empty

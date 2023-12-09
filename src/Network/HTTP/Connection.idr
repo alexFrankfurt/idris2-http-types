@@ -17,22 +17,22 @@ record ConnectionBuffer where
 
 
 public export
-HTTPConnection : Type
-HTTPConnection = IORef ConnectionBuffer
+Connection : Type
+Connection = IORef ConnectionBuffer
 
 export
-Show HTTPConnection where
-  show _ = "<HTTPConnection>"
+Show Connection where
+  show _ = "<Connection>"
 
 
 public export
-data HTTPConnectionError : Type where
-  ConnectionSocketError : SocketError -> HTTPConnectionError
-  ConnectionProtocolError : ProtocolError -> HTTPConnectionError
+data ConnectionError : Type where
+  ConnectionSocketError : SocketError -> ConnectionError
+  ConnectionProtocolError : ProtocolError -> ConnectionError
 
 
 public export
-Show HTTPConnectionError where
+Show ConnectionError where
   show (ConnectionSocketError err) = "ConnectionSocketError: " ++ show err
   show (ConnectionProtocolError err) = "ConnectionProtocolError: " ++ show err
 
@@ -46,19 +46,19 @@ crlfBreak bs = match 0 False $ uncons bs where
   match n _ (Just (_, bs')) = match (n + 1) False $ uncons bs'
 
 
-setBuffer : HTTPConnection -> ByteString -> IO ()
+setBuffer : Connection -> ByteString -> IO ()
 setBuffer connection content = do
   conn <- readIORef connection
   writeIORef connection $ MkConnectionBuffer content conn.socket
 
 
 export
-newConnection : Socket -> IO HTTPConnection
+newConnection : Socket -> IO Connection
 newConnection socket = newIORef $ MkConnectionBuffer empty socket
 
 
 export
-recvBytes : HTTPConnection -> Nat -> IO (Either SocketError ByteString)
+recvBytes : Connection -> Nat -> IO (Either SocketError ByteString)
 recvBytes connection n = do
   MkConnectionBuffer buf sock <- readIORef connection
   -- Try to read from the buffer first
@@ -73,7 +73,7 @@ recvBytes connection n = do
 
 
 export
-recvLine : HTTPConnection -> IO (Either SocketError ByteString)
+recvLine : Connection -> IO (Either SocketError ByteString)
 recvLine connection = do
   MkConnectionBuffer buf sock <- readIORef connection
   -- Try to read from the buffer first
@@ -88,7 +88,7 @@ recvLine connection = do
 
 
 export
-recvHeaders : HTTPConnection -> Headers -> IO (Either HTTPConnectionError Headers)
+recvHeaders : Connection -> Headers -> IO (Either ConnectionError Headers)
 recvHeaders connection headers = do
   Right line <- recvLine connection
   | Left err => pure $ Left $ ConnectionSocketError err

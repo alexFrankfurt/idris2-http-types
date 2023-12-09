@@ -1,5 +1,6 @@
 module Network.HTTP.Application
 
+import Network.HTTP.Connection
 import Network.HTTP.Request
 import Network.HTTP.Response
 import Network.Socket
@@ -13,7 +14,7 @@ data Responded : Type where
 
 public export
 Application : Type
-Application = Request -> (Response -> IO Responded) -> IO Responded
+Application = Request Connection -> (Response -> IO Responded) -> IO Responded
 
 
 export

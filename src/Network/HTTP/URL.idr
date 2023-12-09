@@ -4,6 +4,7 @@ import Data.Fin
 import Data.String
 
 
+public export
 record URL where
   constructor MkURL
   scheme : String

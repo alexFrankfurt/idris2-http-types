@@ -9,7 +9,7 @@ import Network.HTTP.Protocol
 import Network.Socket
 
 
-export
+public export
 record ConnectionBuffer where
   constructor MkConnectionBuffer
   buffer : ByteString

@@ -25,6 +25,7 @@ modules = Network.HTTP.Application
         , Network.HTTP.Protocol
         , Network.HTTP.Request
         , Network.HTTP.Response
+        , Network.HTTP.URL
 
 -- main file (i.e. file to load at REPL)
 -- main =

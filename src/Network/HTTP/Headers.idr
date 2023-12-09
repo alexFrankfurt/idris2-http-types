@@ -65,3 +65,11 @@ hasHeader name (MkHeader name' _ :: headers) =
 export
 empty : Headers
 empty = []
+
+
+public export
+http1Headers : Headers -> String
+http1Headers [] = ""
+http1Headers (MkHeader _ [] :: headers) = http1Headers headers
+http1Headers (MkHeader name (value :: values) :: headers) =
+  name ++ ": " ++ value ++ "\r\n" ++ http1Headers (MkHeader name values :: headers)

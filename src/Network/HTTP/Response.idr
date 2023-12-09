@@ -2,6 +2,8 @@ module Network.HTTP.Response
 
 import Data.Buffer.Indexed
 import Data.ByteString
+import Data.IORef
+import Data.String
 import Network.HTTP.Connection
 import Network.HTTP.Headers
 import Network.HTTP.Protocol
@@ -22,20 +24,30 @@ Show Status where
 
 
 public export
-record Response where
+record Response b where
   constructor MkResponse
   status : Status
   headers : Headers
-  body : ByteString
+  body : b
 
 
 public export
-Show Response where
+Show (Response b) where
   show response
     = "MkResponse ("
     ++ show response.status ++ ") "
-    ++ show response.headers ++ " $ "
-    ++ show response.body
+    ++ show response.headers
+    ++ " <Body>"
+
+
+public export
+contentLength : Response b -> Maybe Nat
+contentLength response =
+  case getHeader "Content-Length" response.headers of
+    Just contentLengthString =>
+      parsePositive contentLengthString
+    Nothing =>
+      Nothing
 
 
 public export
@@ -204,7 +216,7 @@ statusHTTPVersionNotSupported = MkStatus 505 "HTTP Version not supported"
 
 
 export
-http1ResponseLine : Response -> String
+http1ResponseLine : Response b -> String
 http1ResponseLine response
   = "HTTP/1.1 "
   ++ show response.status.code ++ " "
@@ -220,7 +232,7 @@ http1ResponseHeaders ((MkHeader k (v::vs)) :: headers) =
 
 
 export
-http1Response : Response -> String
+http1Response : Response ByteString -> String
 http1Response response
   = http1ResponseLine response ++ "\r\n"
   ++ http1ResponseHeaders response.headers ++ "\r\n"
@@ -228,13 +240,13 @@ http1Response response
 
 
 export
-addHeader : String -> String -> Response -> Response
+addHeader : String -> String -> Response b -> Response b
 addHeader k v response =
   { headers := addHeader (MkHeader k [v]) response.headers } response
 
 
 export
-withContentLength : Response -> Response
+withContentLength : Response ByteString -> Response ByteString
 withContentLength response =
   if hasHeader "Content-Length" response.headers
      then response
@@ -242,7 +254,7 @@ withContentLength response =
 
 
 export
-readResponseHeaders : Connection -> IO (Either ConnectionError Response)
+readResponseHeaders : Connection -> IO (Either ConnectionError (Response Connection))
 readResponseHeaders connection = do
   Right line <- recvLine connection
   | Left error => pure $ Left $ ConnectionSocketError error
@@ -253,4 +265,16 @@ readResponseHeaders connection = do
   Right headers <- recvHeaders connection empty
   | Left error => pure $ Left error
 
-  pure $ Right $ MkResponse (MkStatus statusCode statusText) headers empty
+  pure $ Right $ MkResponse (MkStatus statusCode statusText) headers connection
+
+
+export
+readResponseBody : Response Connection -> IO (Either ConnectionError ByteString)
+readResponseBody response =
+  case contentLength response of
+    Just contentLength => do
+      Right body <- Network.HTTP.Connection.recvBytes response.body contentLength
+      | Left error => pure $ Left $ ConnectionSocketError error
+      pure $ Right body
+    Nothing => pure $ Left $ ConnectionProtocolError $
+      ProtocolErrorMessage "No Content-Length header"

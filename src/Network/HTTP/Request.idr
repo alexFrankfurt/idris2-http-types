@@ -8,6 +8,7 @@ import Network.HTTP.Connection
 import Network.HTTP.Headers
 import Network.HTTP.Methods
 import Network.HTTP.Protocol
+import Network.HTTP.URL
 import Network.Socket
 
 
@@ -35,6 +36,11 @@ contentLength request =
       parsePositive contentLengthString
     Nothing =>
       Nothing
+
+
+public export
+mkRequest : Method -> URL -> Headers -> ByteString -> Request ByteString
+mkRequest method url headers body = MkRequest body method (resource url) headers
 
 
 export

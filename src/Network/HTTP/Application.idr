@@ -28,6 +28,10 @@ export
 mkRespond : Socket -> Respond
 mkRespond sock response0 = do
   let response1 = withContentLength response0
+  putStrLn "[app] preparing to send response"
   Right _ <- send sock $ http1Response response1
-  | Left err => pure $ SendResponseError response1 err
+  | Left err => do
+      putStrLn $ "[app] send failed: " ++ show err
+      pure $ SendResponseError response1 err
+  putStrLn "[app] response send succeeded"
   pure $ SentResponse response1

@@ -65,12 +65,10 @@ recvBytes connection n = do
   Nothing <- pure $ splitAt n buf
   | Just (bs, buf') => setBuffer connection buf' >> pure (Right bs)
   -- Otherwise, read from the socket
-  putStrLn $ "[conn] recvBytes requesting " ++ show n ++ " bytes"
   let requested : ByteLength = cast n
   Right bytes <- Network.Socket.recvBytes sock requested
   | Left err => pure $ Left err
   let chunk = pack bytes
-  putStrLn $ "[conn] recvBytes got chunk length " ++ show (length chunk)
   -- Update the buffer and recurse
   writeIORef connection $ MkConnectionBuffer (buf `append` chunk) sock
   recvBytes connection n

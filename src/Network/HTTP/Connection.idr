@@ -63,12 +63,14 @@ recvBytes connection n = do
   MkConnectionBuffer buf sock <- readIORef connection
   -- Try to read from the buffer first
   Nothing <- pure $ splitAt n buf
-  | Just (bs, buf') => setBuffer connection empty >> (pure $ Right bs)
+  | Just (bs, buf') => setBuffer connection buf' >> pure (Right bs)
   -- Otherwise, read from the socket
-  Right bs <- recvByteString n sock
+  let requested : ByteLength = cast n
+  Right bytes <- Network.Socket.recvBytes sock requested
   | Left err => pure $ Left err
+  let chunk = pack bytes
   -- Update the buffer and recurse
-  writeIORef connection $ MkConnectionBuffer (buf `append` bs) sock
+  writeIORef connection $ MkConnectionBuffer (buf `append` chunk) sock
   recvBytes connection n
 
 
@@ -80,10 +82,12 @@ recvLine connection = do
   Nothing <- pure $ crlfBreak buf
   | Just (line, buf') => setBuffer connection buf' >> (pure $ Right line)
   -- Otherwise, read from the socket
-  Right bs <- recvByteString 4096 sock
+  let chunkSize : ByteLength = cast 4096
+  Right bytes <- Network.Socket.recvBytes sock chunkSize
   | Left err => pure $ Left err
+  let chunk = pack bytes
   -- Update the buffer and recurse
-  writeIORef connection $ MkConnectionBuffer (buf `append` bs) sock
+  writeIORef connection $ MkConnectionBuffer (buf `append` chunk) sock
   recvLine connection
 
 
